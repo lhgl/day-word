@@ -1,0 +1,16 @@
+{
+  "name": "my-nodejs-project",
+  "version": "1.0.0",
+  "description": "A Node.js project that includes utility functions and main application logic.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {}
+}

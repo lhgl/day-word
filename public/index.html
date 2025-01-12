@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle Solver</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Wordle Solver</h1>
+    </header>
+    <main>
+        <p>Welcome to the Wordle Solver!</p>
+        <form id="settings-form">
+            <div class="settings">
+                <label for="chances">Number of chances:</label>
+                <select id="chances" name="chances">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+                <label for="max-letters">Maximum word length:</label>
+                <select id="max-letters" name="max-letters">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
+            <button type="button" id="save-settings">Save</button>
+        </form>
+        <div id="settings-info" style="display: none;"></div>
+        <form id="solve-form" style="display: none;">
+            <div class="clue">
+                <label for="letter">Letter:</label>
+                <select id="letter" name="letter">
+                    <option value="a">A</option>
+                    <option value="b">B</option>
+                    <option value="c">C</option>
+                    <option value="d">D</option>
+                    <option value="e">E</option>
+                    <option value="f">F</option>
+                    <option value="g">G</option>
+                    <option value="h">H</option>
+                    <option value="i">I</option>
+                    <option value="j">J</option>
+                    <option value="k">K</option>
+                    <option value="l">L</option>
+                    <option value="m">M</option>
+                    <option value="n">N</option>
+                    <option value="o">O</option>
+                    <option value="p">P</option>
+                    <option value="q">Q</option>
+                    <option value="r">R</option>
+                    <option value="s">S</option>
+                    <option value="t">T</option>
+                    <option value="u">U</option>
+                    <option value="v">V</option>
+                    <option value="w">W</option>
+                    <option value="x">X</option>
+                    <option value="y">Y</option>
+                    <option value="z">Z</option>
+                </select>
+                <label for="status">Status:</label>
+                <select id="status" name="status">
+                    <option value="correct">Correct</option>
+                    <option value="present">Present</option>
+                    <option value="absent">Absent</option>
+                </select>
+                <label for="position" id="position-label">Position:</label>
+                <select id="position" name="position">
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+            <button type="button" id="add-clue">Add Clue</button>
+            <input type="hidden" id="clues" name="clues">
+            <ul id="clue-list"></ul>
+            <div id="word-display"></div>
+            <div id="possible-letters"></div>
+            <button type="submit">Solve</button>
+        </form>
+        <div id="result"></div>
+    </main>
+    <footer>
+        <p>&copy; 2023 Wordle Solver</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
