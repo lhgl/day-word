@@ -136,8 +136,43 @@ function updateCluesInput() {
     document.getElementById('clues').value = clues.join(',');
 }
 
+function updatePossibleLetters(clues, maxLetters) {
+    const possibleLetters = Array.from({ length: maxLetters }, () => new Set('ABCDEFGHIJKLMNOPQRSTUVWXYZ'));
+
+    clues.forEach(clue => {
+        const pos = clue.position - 1;
+        if (clue.status === 'correct') {
+            possibleLetters[pos] = new Set([clue.letter]);
+            for (let i = 0; i < maxLetters; i++) {
+                if (i !== pos) {
+                    possibleLetters[i].delete(clue.letter);
+                }
+            }
+        } else if (clue.status === 'present') {
+            possibleLetters[pos].delete(clue.letter);
+        } else if (clue.status === 'absent') {
+            possibleLetters.forEach(set => set.delete(clue.letter));
+        }
+    });
+
+    // Verificar se todas as letras distintas foram encontradas
+    const relevantClues = clues.filter(clue => clue.status === 'present' || clue.status === 'correct');
+    const distinctLetters = new Set(relevantClues.map(clue => clue.letter));
+    if (distinctLetters.size === Number(maxLetters)) {
+        possibleLetters.forEach((set, index) => {
+            set.forEach(letter => {
+                if (!distinctLetters.has(letter)) {
+                    set.delete(letter);
+                }
+            });
+        });
+    }
+
+    return possibleLetters;
+}
+
 function updateWordDisplay() {
-    const maxLetters = document.getElementById('solve-form').dataset.maxLetters;
+    const maxLetters = parseInt(document.getElementById('solve-form').dataset.maxLetters);
     const cluesInput = document.getElementById('clues').value;
     const clues = cluesInput.split(',').filter(clue => clue.trim() !== '').map(clue => {
         const [letter, position, status] = clue.trim().split(' ');
@@ -145,43 +180,12 @@ function updateWordDisplay() {
     });
 
     let wordDisplay = '_ '.repeat(maxLetters).trim().split(' ');
-    const possibleLetters = Array.from({ length: maxLetters }, () => new Set('ABCDEFGHIJKLMNOPQRSTUVWXYZ'));
-
-    console.log('Clues:', clues);
+    const possibleLetters = updatePossibleLetters(clues, maxLetters);
 
     clues.forEach(clue => {
         const pos = clue.position - 1;
-        console.log(`Processing clue: ${clue.letter} at position ${clue.position} with status ${clue.status}`);
         if (clue.status === 'correct') {
-            console.log(`Correct clue: ${clue.letter} at position ${clue.position}`);
             wordDisplay[pos] = clue.letter;
-            possibleLetters[pos] = new Set([clue.letter]);
-
-            // Remove all letters from the column except the correct letter
-            for (let i = 0; i < maxLetters; i++) {
-                if (i !== pos) {
-                    possibleLetters[i].delete(clue.letter);
-                }
-            }
-
-            // Remove the position from the select options
-            const positionSelect = document.getElementById('position');
-            const optionToRemove = positionSelect.querySelector(`option[value="${clue.position}"]`);
-            if (optionToRemove) {
-                console.log(`Removing position ${clue.position} from select options`);
-                positionSelect.removeChild(optionToRemove);
-            }
-        } else if (clue.status === 'present') {
-            possibleLetters[pos].delete(clue.letter);
-        } else if (clue.status === 'absent') {
-            possibleLetters.forEach(set => set.delete(clue.letter));
-
-            // Remove the letter from the select options
-            const letterSelect = document.getElementById('letter');
-            const optionToRemove = letterSelect.querySelector(`option[value="${clue.letter.toLowerCase()}"]`);
-            if (optionToRemove) {
-                letterSelect.removeChild(optionToRemove);
-            }
         }
     });
 
@@ -208,6 +212,77 @@ function updateWordDisplay() {
     possibleLettersDiv.appendChild(table);
 }
 
+function generateCombinations(possibleLetters, length, prefix = '', combinations = [], limit = 1000) {
+    if (combinations.length >= limit) {
+        return combinations;
+    }
+    if (prefix.length === length) {
+        combinations.push(prefix);
+        return combinations;
+    }
+
+    const pos = prefix.length;
+    if (possibleLetters[pos] && possibleLetters[pos].size > 0) {
+        possibleLetters[pos].forEach(letter => {
+            generateCombinations(possibleLetters, length, prefix + letter, combinations, limit);
+        });
+    }
+
+    return combinations;
+}
+
+function isValidWord(word) {
+    return true; // Supondo que todas as combinações são válidas para este exemplo
+}
+
+function generateValidWords(possibleLetters, length, limit = 100) {
+    const combinations = generateCombinations(possibleLetters, length, '', [], limit);
+    return combinations.filter(isValidWord);
+}
+
+let currentPage = 0;
+const pageSize = 100;
+
+function updatePossibleWords() {
+    const maxLetters = parseInt(document.getElementById('solve-form').dataset.maxLetters);
+    const cluesInput = document.getElementById('clues').value;
+    const clues = cluesInput.split(',').filter(clue => clue.trim() !== '').map(clue => {
+        const [letter, position, status] = clue.trim().split(' ');
+        return { letter: letter.toUpperCase(), position: parseInt(position), status };
+    });
+
+    const possibleLetters = updatePossibleLetters(clues, maxLetters);
+    const validWords = generateValidWords(possibleLetters, maxLetters);
+    console.log('Valid words:', validWords);
+
+    displayWords(validWords);
+}
+
+function displayWords(words) {
+    console.log('Displaying words:', words); // Log para verificar as palavras recebidas
+
+    const start = currentPage * pageSize;
+    const end = start + pageSize;
+    const paginatedWords = words.slice(start, end);
+
+    console.log('Paginated words:', paginatedWords); // Log para verificar as palavras paginadas
+
+    document.getElementById('result').innerText = `Possible words: ${paginatedWords.join(', ')}`;
+    document.getElementById('pagination').innerText = `Page ${currentPage + 1} of ${Math.ceil(words.length / pageSize)}`;
+}
+
+document.getElementById('next-page').addEventListener('click', function() {
+    currentPage++;
+    updatePossibleWords();
+});
+
+document.getElementById('prev-page').addEventListener('click', function() {
+    if (currentPage > 0) {
+        currentPage--;
+    }
+    updatePossibleWords();
+});
+
 document.getElementById('solve-form').addEventListener('submit', async function(event) {
     event.preventDefault();
     const chances = document.getElementById('solve-form').dataset.chances;
@@ -217,6 +292,10 @@ document.getElementById('solve-form').addEventListener('submit', async function(
         const [letter, position, status] = clue.trim().split(' ');
         return { letter, position: parseInt(position), status };
     });
+
+    // Chame a função para atualizar as possíveis palavras
+    updatePossibleWords();
+
     const response = await fetch('/solve', {
         method: 'POST',
         headers: {
@@ -225,5 +304,5 @@ document.getElementById('solve-form').addEventListener('submit', async function(
         body: JSON.stringify({ chances, maxLetters, clues })
     });
     const data = await response.json();
-    document.getElementById('result').innerText = `Possible words: ${data.possibleWords.join(', ')}`;
+    //document.getElementById('result').innerText = `Possible words: ${data.possibleWords.join(', ')}`;
 });
